@@ -6,5 +6,8 @@ deck = creatingDeck()
 
 players, deck = handingOutCards(amount, deck)
 
-print(players, len(deck))
+deck, discardPile = piles(deck)
 
+turns(players, deck, discardPile)
+
+print(players, len(deck), discardPile)
