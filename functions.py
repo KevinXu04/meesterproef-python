@@ -38,7 +38,7 @@ def creatingDeck():
     random.shuffle(deck)
 
     return deck
-    
+
 def handingOutCards(amount, deck):
     players = []
 
@@ -46,12 +46,12 @@ def handingOutCards(amount, deck):
     for i in range(amount):
         players.append({f"Player": i+1, "Deck": [], "Score": 0})
 
-    # Kaarten uitdelen 
+    # Kaarten uitdelen
     for i in range(len(players)):
         for x in range(7):
             players[i]["Deck"].append(deck[0])
             del deck[0]
-    
+
     return players, deck
 
 def piles(deck):
@@ -60,22 +60,20 @@ def piles(deck):
     deck.pop(0)
 
     return deck, discardPile
-        
+
 def canPlay(currentCard, selectedCardInt, currentPlayer):
     if currentPlayer["Deck"][selectedCardInt].split()[0] == currentCard.split()[0] or currentPlayer["Deck"][selectedCardInt].split()[1] == currentCard.split()[1]:
         print("Correct color")
         return True
-    elif selectedCardInt.split()[1] in ("draw", "card"):
+    elif currentPlayer["Deck"][selectedCardInt].split()[1] in ("draw", "card"):
         print("Correct color")
         return True
     else:
         return False
 
 def drawCard(currentPlayer, drawPile):
-    lst = []
-    lst.append(drawPile[0])
+    currentPlayer["Deck"].append(drawPile[0])
     del drawPile[0]
-    currentPlayer["Deck"] + lst
 
     return currentPlayer, drawPile
 
@@ -83,13 +81,59 @@ def specialCardMoves(currentPlayer, selectedCardInt, currentPlayerIndex, drawPil
     if currentPlayer["Deck"][selectedCardInt].split()[1] in ("skip"):
         currentPlayerIndex = (currentPlayerIndex + 2) % len(players)
         discardPile.append(currentPlayer["Deck"][selectedCardInt])
-        currentPlayer["Deck"].pop([selectedCardInt])
+        currentPlayer["Deck"].pop(selectedCardInt)
     elif currentPlayer["Deck"][selectedCardInt].split()[1] in ("draw", "2", "draw 2"):
         players.reverse()
-    
+
     return currentPlayer, currentPlayerIndex, drawPile, discardPile, players
 
-def turns(players, deck, discardPile):
+def getSelectedCard(currentPlayer):
+    try:
+        return int(input("\nEnter the number of the card you want to play or type '99' to draw a card ")) - 1
+    except ValueError:
+        return -1
+
+def resetDecks(players, deck):
+    for player in players:
+        player["Deck"] = []
+    for i in range(len(players)):
+        for x in range(7):
+            players[i]["Deck"].append(deck[0])
+            del deck[0]
+
+def displayPlayerDeck(player, currentCard):
+    print(f"\nPlayer's {player['Player']} turn.")
+    print(f"Current card: {currentCard}")
+    print("Your deck:")
+    for number, card in enumerate(player["Deck"]):
+        print(number+1, "| ", card)
+
+def hasWonRound(currentPlayer, deck, players):
+    if currentPlayer["Deck"] == []:
+        currentPlayer["Score"] += 1
+        resetDecks(players, deck)
+        for i in range(len(players)):
+            for x in range(7):
+                players[i]["Deck"].append(deck[0])
+                del deck[0]
+        return False
+    return True
+
+def hasWonGame(players):
+    for score in players:
+        if score["Score"] == 5:
+            print(f"Player {score['Player']} has won the game")
+
+def normalCard(currentCard, selectedCardInt, currentPlayer, discardPile, currentPlayerIndex, players):
+    if canPlay(currentCard, selectedCardInt, currentPlayer):
+        discardPile.append(currentPlayer["Deck"][selectedCardInt])
+        currentPlayer["Deck"].pop(selectedCardInt)
+        currentPlayerIndex = (currentPlayerIndex + 1) % len(players)
+        return currentPlayerIndex
+    else:
+        print("Invalid input. Please enter a valid number.")
+
+def game(players, deck, discardPile):
     playAgain = True
     drawPile = deck.copy()
     while playAgain:
@@ -100,61 +144,35 @@ def turns(players, deck, discardPile):
         while turns:
             currentCard = discardPile[-1]
             currentPlayer = players[currentPlayerIndex]
-            print(f"\nPlayer's {currentPlayer['Player']} turn.")
-            print(f"Current card: {currentCard}")
-            print("Your deck:")
+
+            # Displaying player's deck
+            displayPlayerDeck(currentPlayer, currentCard)
 
             # Kijken wie als uitgespeeld heeft
-            if currentPlayer["Deck"] == []:
-                turns = False
-                currentPlayer["Score"] += 1
-                for i in range(len(players)):
-                    for x in range(7):
-                        players[i]["Deck"].append(deck[0])
-                        del deck[0]
-                print(players)
+            turns = hasWonRound(currentPlayer, deck, players)
 
             # Als iemand 5 punten heeft heeft hij hele game gewonnen
-            for score in players:
-                if score["Score"] == 5:
-                    print(f"Player {score['Score']} has won the game")
-
-            # De dek uitprinten van de speler die aan de beurt is
-            for number, card in enumerate(currentPlayer["Deck"]):
-                print(number+1, "| ", card)
+            hasWonGame(players)
 
             try:
                 # Bepalen welk kaart hij wilt
-                selectedCardInt = int(input("\nEnter the number of the card you want to play or type '99' to draw a card "))
-                selectedCardInt -= 1
-
-                # Speciale kaart
-                if currentPlayer["Deck"][selectedCardInt].split()[1] in specialCards:
-                    print("Special card detected!", currentPlayer["Deck"][selectedCardInt])
-                    if canPlay(currentCard, selectedCardInt, currentPlayer):
-                        discardPile.append(currentPlayer["Deck"][selectedCardInt])
-                        currentPlayer["Deck"].pop(selectedCardInt)
-                        currentPlayerIndex = (currentPlayerIndex + 1) % len(players)
-                    else:
-                        print("Invalid input. Please enter a valid number.")
-
-                # Error bericht
-                elif selectedCardInt < 0 or selectedCardInt >= len(currentPlayer["Deck"]):
-                    print("Invalid input. Please enter a valid number.")
+                selectedCardInt = getSelectedCard(currentPlayer)
 
                 # Als hij kaart wilt pakken
-                elif selectedCardInt == 99:
+                if selectedCardInt == 98:
                     currentPlayer, drawPile = drawCard(currentPlayer, drawPile)
                     currentPlayerIndex = (currentPlayerIndex + 1) % len(players)
 
+                # Speciale kaart
+                elif currentPlayer["Deck"][selectedCardInt].split()[1] in specialCards:
+                    currentPlayer, currentPlayerIndex, drawPile, discardPile, players = specialCardMoves(currentPlayer, selectedCardInt, currentPlayerIndex, drawPile, discardPile, players)
+
                 # Normale kaart
+                elif 0 <= selectedCardInt < len(currentPlayer["Deck"]):
+                    selectedCard = currentPlayer["Deck"][selectedCardInt]
+                    normalCard(currentCard, selectedCardInt, currentPlayer, discardPile, currentPlayerIndex, players)
                 else:
-                    print("Regular card detected!") 
-                    if canPlay(currentCard, selectedCardInt, currentPlayer):
-                        discardPile.append(currentPlayer["Deck"][selectedCardInt])
-                        currentPlayer["Deck"].pop(selectedCardInt)
-                        currentPlayerIndex = (currentPlayerIndex + 1) % len(players)
-                    else:
-                        print("Invalid input. Please enter a valid number.")
+                    print("Invalid input. Please enter a valid number.")
+
             except:
                 print("Invalid input. Please enter a valid number.")
