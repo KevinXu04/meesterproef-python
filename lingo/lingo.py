@@ -13,19 +13,27 @@ def wordLength(guess):
     return len(guess) == 5
 
 def checkingForColors(guessedWord, word, correctLetters):
-    tempWord = ''
-    newCorrectLetters = list(correctLetters)
-    
+    tempWord = '' 
+    newCorrectLetters = list(correctLetters) 
+    wordOccurences = {}
+
+    for letter in word:
+        if letter not in wordOccurences:
+            wordOccurences[letter] = word.count(letter)
+
     for i in range(len(guessedWord)):
         if guessedWord[i] == word[i]:
             tempWord += (Fore.GREEN + guessedWord[i])
             newCorrectLetters[i] = guessedWord[i]
-        elif guessedWord[i] in word:
+            wordOccurences[guessedWord[i]] -= 1  
+        elif guessedWord[i] in word and newCorrectLetters[i] != guessedWord[i] and wordOccurences[guessedWord[i]] > 0:
             tempWord += (Fore.YELLOW + guessedWord[i])
+            wordOccurences[guessedWord[i]] -= 1  
         else:
             tempWord += (Fore.RED + guessedWord[i])
 
     return tempWord, ''.join(newCorrectLetters)
+
 
 def hasWon(correctLetters, word):
     return correctLetters == word

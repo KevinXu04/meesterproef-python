@@ -275,6 +275,7 @@ words = [
 	"nodig",
 	"naden",
 	"neder",
+    "nigga",
 	"nemen",
 	"onder",
 	"optel",
