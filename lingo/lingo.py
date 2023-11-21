@@ -44,8 +44,9 @@ def mainGame():
     won = False
 
     correctLetters = word[0] + "____"
+    print(Fore.GREEN + correctLetters)
 
-    print(word)
+    # print(word)
 
     while not won and attempts > 0:
         guessedWord = guessWord()
@@ -65,6 +66,6 @@ def mainGame():
     if won:
         print("Gefeliciteerd je hebt het woord geraden!")
     else:
-        print(f"Jammer je hebt verloren. Het woord was: {word}")
+        print(f"Jammer je hebt verloren. Het woord was: {Fore.GREEN + word}")
 
 mainGame()
