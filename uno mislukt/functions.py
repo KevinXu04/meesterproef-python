@@ -131,7 +131,7 @@ def normalCard(currentCard, selectedCardInt, currentPlayer, discardPile, current
         currentPlayerIndex = (currentPlayerIndex + 1) % len(players)
         return currentPlayerIndex
     else:
-        print("Invalid input. Please enter a valid number.")
+        print("Invalid input.")
 
 def game(players, deck, discardPile):
     playAgain = True
